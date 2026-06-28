@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relic Squad Finder – Warframe</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #10141c;
+    --bg3: #161b26;
+    --card: #12161f;
+    --card-hover: #1a2030;
+    --border: #1e2840;
+    --border-bright: #2a3a5c;
+    --accent: #4fc3f7;
+    --accent2: #00e5ff;
+    --gold: #ffd54f;
+    --text: #d0dce8;
+    --text-muted: #6a7d96;
+    --text-dim: #3a4a60;
+    --axi: #c9a227;
+    --neo: #6ec6ca;
+    --meso: #8bc34a;
+    --lith: #cf6679;
+    --squad-full: #00e676;
+    --squad-warn: #ffd740;
+    --glow-accent: 0 0 18px rgba(79,195,247,0.18);
+    --glow-gold: 0 0 18px rgba(255,213,79,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 28px; height: 28px;
+    border: 2px solid var(--accent);
+    transform: rotate(45deg);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .logo-icon::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    background: var(--accent);
+    opacity: 0.3;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  #search-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    padding: 7px 12px 7px 34px;
+    width: 220px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  #search-input:focus { border-color: var(--accent); }
+  #search-input::placeholder { color: var(--text-muted); }
+
+  .btn-login {
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .btn-login:hover { background: rgba(79,195,247,0.1); }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* FILTERS */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    padding: 14px 24px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-muted);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 5px 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: var(--border-bright); color: var(--text); }
+
+  .filter-btn.active-all { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active-lith { border-color: var(--lith); color: var(--lith); }
+  .filter-btn.active-meso { border-color: var(--meso); color: var(--meso); }
+  .filter-btn.active-neo { border-color: var(--neo); color: var(--neo); }
+  .filter-btn.active-axi { border-color: var(--axi); color: var(--axi); }
+
+  /* MAIN GRID */
+  main {
+    padding: 20px 24px 40px;
+  }
+
+  .section-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .relic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  /* RELIC CARD */
+  .relic-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    aspect-ratio: 1 / 1.15;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .relic-card:hover {
+    border-color: var(--border-bright);
+    background: var(--card-hover);
+    transform: translateY(-1px);
+  }
+
+  .relic-card.joined {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(79,195,247,0.15);
+  }
+
+  .relic-card.full {
+    border-color: var(--squad-full);
+  }
+
+  /* tier accent strip */
+  .tier-strip {
+    height: 3px;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .tier-lith .tier-strip { background: var(--lith); }
+  .tier-meso .tier-strip { background: var(--meso); }
+  .tier-neo .tier-strip { background: var(--neo); }
+  .tier-axi .tier-strip { background: var(--axi); }
+
+  .card-img-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 10px 6px;
+  }
+
+  .relic-icon {
+    width: 62px;
+    height: 62px;
+  }
+
+  /* SVG relic icons */
+  .tier-lith .relic-icon .diamond { fill: var(--lith); }
+  .tier-meso .relic-icon .diamond { fill: var(--meso); }
+  .tier-neo .relic-icon .diamond { fill: var(--neo); }
+  .tier-axi .relic-icon .diamond { fill: var(--axi); }
+
+  .card-info {
+    padding: 6px 8px 10px;
+  }
+
+  .card-tier {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 1px;
+  }
+
+  .tier-lith .card-tier { color: var(--lith); }
+  .tier-meso .card-tier { color: var(--meso); }
+  .tier-neo .card-tier { color: var(--neo); }
+  .tier-axi .card-tier { color: var(--axi); }
+
+  .card-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .squad-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .squad-pips {
+    display: flex;
+    gap: 3px;
+  }
+
+  .pip {
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--border-bright);
+    border-radius: 1px;
+    transition: background 0.15s;
+  }
+
+  .pip.filled { background: var(--accent); border-color: var(--accent); }
+  .pip.filled-full { background: var(--squad-full); border-color: var(--squad-full); }
+
+  .squad-count {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: 2px;
+  }
+
+  /* NOTIFICATION TOAST */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--bg2);
+    border: 1px solid var(--squad-full);
+    border-radius: 3px;
+    padding: 12px 16px;
+    max-width: 300px;
+    pointer-events: all;
+    animation: slideIn 0.2s ease;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  .toast-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--squad-full);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .toast-body {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .toast-names {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 0.5px;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* LOGIN MODAL */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+
+  .modal-bg.hidden { display: none; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 32px;
+    width: 340px;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .modal-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .modal-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .modal input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .modal input:focus { border-color: var(--accent); }
+  .modal input::placeholder { color: var(--text-dim); }
+
+  .modal-err {
+    font-size: 12px;
+    color: var(--lith);
+    margin-bottom: 10px;
+    min-height: 16px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: rgba(79,195,247,0.1);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.15s;
+  }
+
+  .btn-primary:hover { background: rgba(79,195,247,0.18); }
+
+  /* DETAIL PANEL (slide in from right) */
+  .detail-panel {
+    position: fixed;
+    top: 0; right: 0;
+    width: 320px;
+    height: 100vh;
+    background: var(--bg2);
+    border-left: 1px solid var(--border-bright);
+    z-index: 150;
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .detail-panel.open { transform: translateX(0); }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 20px;
+  }
+
+  .panel-relic-preview {
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-icon-wrap {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 12px;
+  }
+
+  .panel-tier-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .panel-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .panel-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-section-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .squad-members {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .member-slot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 2px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .member-slot.occupied { border-color: rgba(79,195,247,0.25); }
+  .member-slot.occupied .slot-num { color: var(--accent); }
+
+  .slot-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--text-dim);
+    width: 16px;
+    text-align: center;
+  }
+
+  .slot-name {
+    flex: 1;
+    font-weight: 500;
+  }
+
+  .slot-empty { color: var(--text-dim); }
+
+  .slot-you {
+    font-size: 10px;
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+
+  .panel-actions {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-join {
+    width: 100%;
+    background: rgba(79,195,247,0.08);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.15s;
+  }
+
+  .btn-join:hover { background: rgba(79,195,247,0.15); }
+  .btn-join.leaving { border-color: var(--lith); color: var(--lith); background: rgba(207,102,121,0.08); }
+  .btn-join.leaving:hover { background: rgba(207,102,121,0.15); }
+  .btn-join:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* empty state */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+
+  /* SUPABASE HINT BANNER */
+  .setup-banner {
+    background: rgba(255,213,79,0.07);
+    border-bottom: 1px solid rgba(255,213,79,0.2);
+    padding: 10px 24px;
+    font-size: 12px;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .setup-banner a { color: var(--gold); }
+  .setup-banner.hidden { display: none; }
+
+  /* CONNECTED BADGE */
+  .db-status {
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-muted);
+  }
+
+  .db-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+  }
+
+  .db-dot.connected { background: var(--squad-full); }
+</style>
+</head>
+<body>
+
+<!-- SETUP BANNER (shown until Supabase is configured) -->
+<div class="setup-banner" id="setup-banner">
+  ⚙ Demo-Modus: Daten werden nur lokal gespeichert.
+  Füge deine <strong>Supabase URL & API-Key</strong> in <code>config</code> am Anfang der JS-Sektion ein, um echte Echtzeit-Sync zu aktivieren.
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon"></div>
+    Relic Finder
+  </div>
+  <div class="header-right">
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search-input" placeholder="Suche: Axi S20 …" />
+    </div>
+    <div id="user-area">
+      <button class="btn-login" id="btn-login-open">Anmelden</button>
+    </div>
+    <div class="db-status">
+      <div class="db-dot" id="db-dot"></div>
+      <span id="db-label">Lokal</span>
+    </div>
+  </div>
+</header>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <button class="filter-btn active-all" data-filter="all" onclick="setFilter('all',this)">Alle</button>
+  <button class="filter-btn" data-filter="Lith" onclick="setFilter('Lith',this)">Lith</button>
+  <button class="filter-btn" data-filter="Meso" onclick="setFilter('Meso',this)">Meso</button>
+  <button class="filter-btn" data-filter="Neo" onclick="setFilter('Neo',this)">Neo</button>
+  <button class="filter-btn" data-filter="Axi" onclick="setFilter('Axi',this)">Axi</button>
+</div>
+
+<!-- MAIN -->
+<main>
+  <p class="section-label" id="grid-label">Alle Relics</p>
+  <div class="relic-grid" id="relic-grid"></div>
+</main>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-bg hidden" id="login-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeLogin()">×</button>
+    <div class="modal-title">In-Game Name</div>
+    <p class="modal-sub">Gib deinen Warframe In-Game Namen ein. Er wird anderen Spielern angezeigt.</p>
+    <input type="text" id="username-input" placeholder="z. B. VoidHunter7" maxlength="24" />
+    <div class="modal-err" id="login-err"></div>
+    <button class="btn-primary" onclick="saveUser()">Bestätigen</button>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detail-panel">
+  <div class="panel-header">
+    <span id="panel-relic-label" style="font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase"></span>
+    <button class="panel-close" onclick="closePanel()">×</button>
+  </div>
+  <div class="panel-relic-preview">
+    <div class="panel-icon-wrap" id="panel-icon"></div>
+    <div class="panel-tier-label" id="panel-tier-label"></div>
+    <div class="panel-name" id="panel-name"></div>
+  </div>
+  <div class="panel-section">
+    <div class="panel-section-label">Squad — <span id="panel-count">0/4</span></div>
+    <div class="squad-members" id="squad-members"></div>
+  </div>
+  <div class="panel-actions">
+    <button class="btn-join" id="btn-join" onclick="toggleJoin()">Beitreten</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG — Supabase (optional, für echte Datenbank)
+// ═══════════════════════════════════════════════════
+const config = {
+  supabaseUrl: '',   // z.B. 'https://xxxx.supabase.co'
+  supabaseKey: '',   // Dein anon/public key
+};
+
+// ═══════════════════════════════════════════════════
+// RELIC DATA
+// ═══════════════════════════════════════════════════
+const TIERS = ['Lith', 'Meso', 'Neo', 'Axi'];
+const TIER_CODES = {
+  Lith: ['B1','B2','B3','B4','B5','C1','C2','C3','C4','C5','C6','C7','C8','C9','C10',
+          'D1','D2','D3','D4','E1','F1','F2','F3','G1','H1','H2','H3','H4','H5','H6',
+          'I1','J1','J2','K1','K2','K3','K4','K5','K6','K7','K8','M1','M2','M3','N1',
+          'N2','N3','N4','N5','O1','O2','P1','P2','P3','P4','P5','P6','Q1','R1','R2',
+          'S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11','S12','T1','T2',
+          'V1','V2','V3','V4','V5','V6','V7','V8','V9','V10','W1','W2','Z1','Z2','Z3'],
+  Meso: ['A1','B1','B2','B3','C1','C2','C3','C4','D1','D2','D3','D4','D5','D6','E1',
+          'E2','E3','F1','F2','F3','F4','F5','G1','H1','H2','H3','H4','I1','I2','J1',
+          'K1','K2','K3','K4','K5','L1','L2','M1','N1','N2','N3','N4','N5','N6','O1',
+          'O2','P1','P2','P3','P4','Q1','R1','R2','S1','S2','S3','S4','T1','T2','T3',
+          'U1','V1','V2','V3','V4','V5','V6','W1','W2','X1','X2','Z1','Z2','Z3'],
+  Neo: ['A1','A2','A3','A4','A5','A6','B1','B2','B3','B4','B5','C1','C2','C3','C4',
+         'D1','D2','D3','D4','D5','E1','E2','F1','F2','F3','G1','G2','H1','H2','H3',
+         'I1','I2','J1','K1','K2','L1','M1','M2','M3','N1','N2','N3','N4','O1','O2',
+         'P1','P2','P3','P4','Q1','R1','R2','R3','R4','R5','S1','S2','S3','S4','S5',
+         'S6','S7','S8','S9','S10','S11','T1','T2','T3','V1','V2','V3','V4','V5',
+         'V6','V7','V8','V9','V10','W1','W2','W3','X1','Z1'],
+  Axi: ['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10','B1','B2','B3','B4','B5',
+         'B6','B7','C1','C2','C3','C4','C5','D1','D2','D3','E1','E2','E3','F1','F2',
+         'G1','G2','G3','H1','H2','H3','I1','I2','J1','K1','K2','K3','L1','M1','M2',
+         'M3','N1','N2','N3','N4','N5','N6','O1','O2','P1','P2','P3','Q1','R1','R2',
+         'R3','R4','R5','R6','R7','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10',
+         'S11','S12','S13','S14','S15','S16','S17','S18','S19','S20','T1','V1','V2',
+         'V3','V4','V5','V6','V7','W1','W2','X1','Z1'],
+};
+
+// Generate relic list
+const relics = [];
+for (const tier of TIERS) {
+  for (const code of TIER_CODES[tier]) {
+    relics.push({ id: `${tier}-${code}`, tier, code, name: `${code}` });
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let currentUser = localStorage.getItem('wf_username') || null;
+let currentFilter = 'all';
+let searchQuery = '';
+let openRelicId = null;
+// squads: { relicId: [username, ...] }  — in-memory for demo
+let squads = JSON.parse(localStorage.getItem('wf_squads') || '{}');
+
+// ═══════════════════════════════════════════════════
+// SVG RELIC ICONS
+// ═══════════════════════════════════════════════════
+function relicSVG(tier, size = 62) {
+  const colors = { Lith: '#cf6679', Meso: '#8bc34a', Neo: '#6ec6ca', Axi: '#c9a227' };
+  const c = colors[tier];
+  return `<svg width="${size}" height="${size}" viewBox="0 0 62 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="31,4 58,31 31,58 4,31" fill="${c}" fill-opacity="0.12" stroke="${c}" stroke-width="1.5"/>
+    <polygon points="31,12 50,31 31,50 12,31" fill="${c}" fill-opacity="0.18" stroke="${c}" stroke-width="1"/>
+    <polygon points="31,20 42,31 31,42 20,31" fill="${c}" fill-opacity="0.35"/>
+    <circle cx="31" cy="31" r="4" fill="${c}" opacity="0.9"/>
+    <line x1="31" y1="4" x2="31" y2="12" stroke="${c}" stroke-width="1" opacity="0.5"/>
+    <line x1="31" y1="50" x2="31" y2="58" stroke="${c}" stroke-width="1" opacity="0.5"/>
+    <line x1="4" y1="31" x2="12" y2="31" stroke="${c}" stroke-width="1" opacity="0.5"/>
+    <line x1="50" y1="31" x2="58" y2="31" stroke="${c}" stroke-width="1" opacity="0.5"/>
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+function saveSquads() {
+  localStorage.setItem('wf_squads', JSON.stringify(squads));
+}
+
+function getSquad(relicId) {
+  return squads[relicId] || [];
+}
+
+function renderGrid() {
+  const grid = document.getElementById('relic-grid');
+  const label = document.getElementById('grid-label');
+  const q = searchQuery.trim().toLowerCase();
+
+  const filtered = relics.filter(r => {
+    const matchTier = currentFilter === 'all' || r.tier === currentFilter;
+    const matchQ = !q || `${r.tier.toLowerCase()} ${r.code.toLowerCase()}`.includes(q)
+                      || `${r.tier.toLowerCase()}${r.code.toLowerCase()}`.includes(q.replace(/\s/g,''));
+    return matchTier && matchQ;
+  });
+
+  label.textContent = currentFilter === 'all'
+    ? `Alle Relics (${filtered.length})`
+    : `${currentFilter} Relics (${filtered.length})`;
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state">Kein Relic gefunden für "${q}"</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(r => {
+    const squad = getSquad(r.id);
+    const count = squad.length;
+    const isFull = count >= 4;
+    const isJoined = currentUser && squad.includes(currentUser);
+    const pips = [0,1,2,3].map(i => {
+      if (i < count) return `<div class="pip ${isFull ? 'filled-full' : 'filled'}"></div>`;
+      return `<div class="pip"></div>`;
+    }).join('');
+
+    return `<div class="relic-card tier-${r.tier.toLowerCase()} ${isJoined ? 'joined' : ''} ${isFull ? 'full' : ''}"
+      onclick="openRelic('${r.id}')">
+      <div class="tier-strip"></div>
+      <div class="card-img-wrap">
+        <div class="relic-icon">${relicSVG(r.tier, 62)}</div>
+      </div>
+      <div class="card-info">
+        <div class="card-tier">${r.tier}</div>
+        <div class="card-name">${r.tier} ${r.code}</div>
+        <div class="squad-bar-wrap">
+          <div class="squad-pips">${pips}</div>
+          <span class="squad-count">${count}/4</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// FILTERS & SEARCH
+// ═══════════════════════════════════════════════════
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.className = 'filter-btn';
+  });
+  btn.className = `filter-btn active-${f === 'all' ? 'all' : f.toLowerCase()}`;
+  renderGrid();
+}
+
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  renderGrid();
+});
+
+// ═══════════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════════
+function openLogin() {
+  document.getElementById('login-modal').classList.remove('hidden');
+  document.getElementById('username-input').value = currentUser || '';
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('username-input').focus();
+}
+
+function closeLogin() {
+  document.getElementById('login-modal').classList.add('hidden');
+}
+
+function saveUser() {
+  const val = document.getElementById('username-input').value.trim();
+  if (!val || val.length < 2) {
+    document.getElementById('login-err').textContent = 'Mindestens 2 Zeichen.';
+    return;
+  }
+  currentUser = val;
+  localStorage.setItem('wf_username', val);
+  updateUserArea();
+  closeLogin();
+  renderGrid();
+  if (openRelicId) updatePanel(openRelicId);
+}
+
+function updateUserArea() {
+  const area = document.getElementById('user-area');
+  if (currentUser) {
+    area.innerHTML = `<div class="user-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      ${currentUser}
+    </div>`;
+  } else {
+    area.innerHTML = `<button class="btn-login" id="btn-login-open" onclick="openLogin()">Anmelden</button>`;
+  }
+}
+
+document.getElementById('btn-login-open').addEventListener('click', openLogin);
+
+// ═══════════════════════════════════════════════════
+// DETAIL PANEL
+// ═══════════════════════════════════════════════════
+function openRelic(id) {
+  openRelicId = id;
+  document.getElementById('detail-panel').classList.add('open');
+  updatePanel(id);
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('open');
+  openRelicId = null;
+}
+
+function updatePanel(id) {
+  const relic = relics.find(r => r.id === id);
+  if (!relic) return;
+  const squad = getSquad(id);
+  const count = squad.length;
+  const isFull = count >= 4;
+  const isJoined = currentUser && squad.includes(currentUser);
+
+  document.getElementById('panel-relic-label').textContent = `${relic.tier} Relic`;
+  document.getElementById('panel-icon').innerHTML = relicSVG(relic.tier, 90);
+  const tierLabel = document.getElementById('panel-tier-label');
+  tierLabel.textContent = relic.tier;
+  const colors = { Lith: 'var(--lith)', Meso: 'var(--meso)', Neo: 'var(--neo)', Axi: 'var(--axi)' };
+  tierLabel.style.color = colors[relic.tier];
+  document.getElementById('panel-name').textContent = `${relic.tier} ${relic.code}`;
+  document.getElementById('panel-count').textContent = `${count}/4`;
+
+  // slots
+  const slots = document.getElementById('squad-members');
+  slots.innerHTML = [0,1,2,3].map(i => {
+    const member = squad[i];
+    const isYou = member === currentUser;
+    if (member) {
+      return `<div class="member-slot occupied">
+        <span class="slot-num">${i+1}</span>
+        <span class="slot-name">${member}</span>
+        ${isYou ? '<span class="slot-you">DU</span>' : ''}
+      </div>`;
+    }
+    return `<div class="member-slot">
+      <span class="slot-num">${i+1}</span>
+      <span class="slot-name slot-empty">— Offen —</span>
+    </div>`;
+  }).join('');
+
+  // join button
+  const btn = document.getElementById('btn-join');
+  if (!currentUser) {
+    btn.textContent = 'Erst anmelden';
+    btn.disabled = false;
+    btn.className = 'btn-join';
+    btn.onclick = () => { closePanel(); openLogin(); };
+  } else if (isJoined) {
+    btn.textContent = 'Verlassen';
+    btn.disabled = false;
+    btn.className = 'btn-join leaving';
+    btn.onclick = toggleJoin;
+  } else if (isFull) {
+    btn.textContent = 'Squad voll';
+    btn.disabled = true;
+    btn.className = 'btn-join';
+    btn.onclick = null;
+  } else {
+    btn.textContent = 'Beitreten';
+    btn.disabled = false;
+    btn.className = 'btn-join';
+    btn.onclick = toggleJoin;
+  }
+}
+
+function toggleJoin() {
+  if (!currentUser) { openLogin(); return; }
+  if (!openRelicId) return;
+  const squad = getSquad(openRelicId);
+  const idx = squad.indexOf(currentUser);
+  if (idx !== -1) {
+    // leave
+    squad.splice(idx, 1);
+    squads[openRelicId] = squad;
+  } else {
+    if (squad.length >= 4) return;
+    squad.push(currentUser);
+    squads[openRelicId] = squad;
+    if (squad.length === 4) {
+      showFullNotification(openRelicId, squad);
+    }
+  }
+  saveSquads();
+  updatePanel(openRelicId);
+  renderGrid();
+}
+
+// ═══════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════
+function showFullNotification(relicId, squad) {
+  const relic = relics.find(r => r.id === relicId);
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <div class="toast-title">⬡ Squad vollständig!</div>
+    <div class="toast-body">${relic.tier} ${relic.code} – Alle 4 Spieler bereit.</div>
+    <div class="toast-names">${squad.join(' · ')}</div>
+  `;
+  const container = document.getElementById('toast-container');
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 8000);
+}
+
+// ═══════════════════════════════════════════════════
+// SUPABASE INTEGRATION (optional)
+// ═══════════════════════════════════════════════════
+async function initSupabase() {
+  if (!config.supabaseUrl || !config.supabaseKey) return;
+  // Load Supabase from CDN
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  script.onload = () => {
+    const { createClient } = supabase;
+    const db = createClient(config.supabaseUrl, config.supabaseKey);
+
+    // Fetch squads from DB
+    async function fetchSquads() {
+      const { data } = await db.from('squads').select('*');
+      if (data) {
+        squads = {};
+        data.forEach(row => {
+          squads[row.relic_id] = row.members || [];
+        });
+        renderGrid();
+        if (openRelicId) updatePanel(openRelicId);
+      }
+    }
+
+    // Realtime subscription
+    db.channel('squads').on('postgres_changes', { event: '*', schema: 'public', table: 'squads' }, () => {
+      fetchSquads();
+    }).subscribe();
+
+    // Override save
+    const origSave = saveSquads;
+    window.saveSquadsToDb = async function(relicId, members) {
+      await db.from('squads').upsert({ relic_id: relicId, members }, { onConflict: 'relic_id' });
+    };
+
+    document.getElementById('setup-banner').classList.add('hidden');
+    document.getElementById('db-dot').classList.add('connected');
+    document.getElementById('db-label').textContent = 'Verbunden';
+    fetchSquads();
+  };
+  document.head.appendChild(script);
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+updateUserArea();
+renderGrid();
+initSupabase();
+</script>
+</body>
+</html>
