@@ -1007,18 +1007,22 @@ function toggleJoin() {
   const squad = getSquad(openRelicId);
   const idx = squad.indexOf(currentUser);
   if (idx !== -1) {
-    // leave
     squad.splice(idx, 1);
-    squads[openRelicId] = squad;
   } else {
     if (squad.length >= 4) return;
     squad.push(currentUser);
-    squads[openRelicId] = squad;
     if (squad.length === 4) {
       showFullNotification(openRelicId, squad);
     }
   }
+  squads[openRelicId] = squad;
   saveSquads();
+
+  // Supabase speichern
+  if (window.saveSquadsToDb) {
+    window.saveSquadsToDb(openRelicId, squad);
+  }
+
   updatePanel(openRelicId);
   renderGrid();
 }
